@@ -9,9 +9,8 @@ import time
 from eth_utils import to_checksum_address
 
 # A getLogs call is rejected for two reasons that both mean "ask for less":
-# too many matched results, or too wide a block range. Providers word it
-# differently, so match on fragments seen across Alchemy, Infura, Ankr,
-# QuickNode, Cloudflare, BlockPI, Llama and go-ethereum.
+# too many matched results, or too wide a block range. Nodes word this limit
+# differently, so match on the fragments they return.
 _RANGE_MARKERS = (
     "block range",
     "range is too large",
