@@ -107,12 +107,22 @@ your funds even if the RPC endpoint it talks to is hostile.
 - Completeness depends on the RPC. Public endpoints often serve limited history
   or cap `eth_getLogs` hard, so a scan may miss very old approvals. A private or
   archive endpoint plus `--from-block` near your first activity is the fix.
+- The `stale_approval` rule uses a proxy for "not used since it was granted": it
+  treats an approval as unused when the current allowance still equals the
+  amount last approved. This proxy can be wrong in both directions. It misses an
+  approval that was spent and then re-approved back to the same amount, and it
+  can flag one whose allowance changed for a reason other than spending. Treat
+  the flag as a hint, not a verdict.
 - No Permit2 approvals. Allowances granted to the Permit2 contract, and the
   per-app permits inside it, are not decoded.
 - No EIP-2612 permits. Gasless `permit()` approvals leave no `Approval` log to
   read and are not detected.
 - No ERC-1155 single-token approvals. Only collection-wide `ApprovalForAll` is
   covered, which is what ERC-1155 exposes anyway.
+- The logic is covered by unit tests that mock every RPC call. The tool has not
+  yet been run against a real node, and its output has not been cross-checked
+  against an independent source such as a block explorer or a revoke website.
+  The first run against a live address is the first real-world test.
 
 ## License
 
