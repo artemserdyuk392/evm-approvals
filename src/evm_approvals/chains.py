@@ -23,8 +23,10 @@ class Chain:
     explorer_key_env: str
 
 
+# A default must answer eth_getLogs filtered by topic alone, without a contract
+# address; several popular keyless endpoints refuse exactly that query.
 CHAINS = {
-    "ethereum": Chain("ethereum", 1, "https://eth.llamarpc.com",
+    "ethereum": Chain("ethereum", 1, "https://gateway.tenderly.co/public/mainnet",
                       "ETHEREUM_RPC_URL", _ETHERSCAN_V2, "ETHERSCAN_API_KEY"),
     "arbitrum": Chain("arbitrum", 42161, "https://arb1.arbitrum.io/rpc",
                       "ARBITRUM_RPC_URL", _ETHERSCAN_V2, "ETHERSCAN_API_KEY"),
@@ -32,7 +34,7 @@ CHAINS = {
                       "OPTIMISM_RPC_URL", _ETHERSCAN_V2, "ETHERSCAN_API_KEY"),
     "base": Chain("base", 8453, "https://mainnet.base.org",
                   "BASE_RPC_URL", _ETHERSCAN_V2, "ETHERSCAN_API_KEY"),
-    "polygon": Chain("polygon", 137, "https://polygon-rpc.com",
+    "polygon": Chain("polygon", 137, "https://gateway.tenderly.co/public/polygon",
                      "POLYGON_RPC_URL", _ETHERSCAN_V2, "ETHERSCAN_API_KEY"),
     "bsc": Chain("bsc", 56, "https://bsc-dataseed.binance.org",
                  "BSC_RPC_URL", _ETHERSCAN_V2, "ETHERSCAN_API_KEY"),
