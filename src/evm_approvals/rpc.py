@@ -4,6 +4,7 @@ for range detection and sidesteps POA block-formatting quirks."""
 
 from __future__ import annotations
 
+import requests
 from web3 import Web3
 
 from .chains import Chain
@@ -32,7 +33,16 @@ class Rpc:
             "toBlock": hex(to_block),
             "topics": topics,
         }
-        resp = self.w3.provider.make_request("eth_getLogs", [params])
+        try:
+            resp = self.w3.provider.make_request("eth_getLogs", [params])
+        except requests.HTTPError as exc:
+            # Many nodes refuse a range with a 4xx/5xx and put the reason in the
+            # JSON body (Base: 413 "limited to a 500 range", drpc: 400).
+            # raise_for_status reduces that to "413 Client Error", which range
+            # detection cannot read, so recover the body when there is one.
+            resp = _json_error(exc.response)
+            if resp is None:
+                raise
         error = resp.get("error")
         if error:
             raise RpcError(_message(error))
@@ -62,6 +72,16 @@ def _message(error) -> str:
     if isinstance(error, dict):
         return str(error.get("message", error))
     return str(error)
+
+
+def _json_error(response):
+    try:
+        body = response.json()
+    except Exception:
+        return None
+    if isinstance(body, dict) and body.get("error"):
+        return body
+    return None
 
 
 def _hexbytes(result) -> bytes:
