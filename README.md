@@ -59,6 +59,8 @@ Useful flags:
 - `--days N` age after which an unused approval is reported as stale (default 90).
 - `--explorer-key KEY` enable the "unverified spender source" check.
 - `--no-cache` do not read or write the cache.
+- `-v` print every `eth_getLogs` window the node refused, with the node's own
+  message and the narrowed window size, to stderr.
 
 ### Configuration
 
@@ -107,6 +109,12 @@ your funds even if the RPC endpoint it talks to is hostile.
 - Completeness depends on the RPC. Public endpoints often serve limited history
   or cap `eth_getLogs` hard, so a scan may miss very old approvals. A private or
   archive endpoint plus `--from-block` near your first activity is the fix.
+- Speed depends on the RPC too. The public defaults for some chains cap the
+  `eth_getLogs` window (as of 2026-10): `mainnet.base.org` at 500 blocks, so a
+  year on Base is about 30k calls per event type, and `arb1.arbitrum.io` at
+  30000 blocks on a chain that makes about 4 blocks a second.
+  `bsc-dataseed.binance.org` refuses `eth_getLogs` of any size, so BSC needs
+  your own endpoint in `BSC_RPC_URL`.
 - The `stale_approval` rule uses a proxy for "not used since it was granted": it
   treats an approval as unused when the current allowance still equals the
   amount last approved. This proxy can be wrong in both directions. It misses an
@@ -119,10 +127,11 @@ your funds even if the RPC endpoint it talks to is hostile.
   read and are not detected.
 - No ERC-1155 single-token approvals. Only collection-wide `ApprovalForAll` is
   covered, which is what ERC-1155 exposes anyway.
-- The logic is covered by unit tests that mock every RPC call. The tool has not
-  yet been run against a real node, and its output has not been cross-checked
-  against an independent source such as a block explorer or a revoke website.
-  The first run against a live address is the first real-world test.
+- The logic is covered by unit tests that mock every RPC call. It has had one
+  live run so far (2026-10, Ethereum mainnet, one year of history for one
+  address): every reported allowance was re-read on a second node and matched,
+  and every historical pair whose allowance is now zero was dropped. The output
+  has not yet been compared against a revoke website.
 
 ## License
 
