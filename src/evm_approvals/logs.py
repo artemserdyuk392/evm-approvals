@@ -29,6 +29,15 @@ _RANGE_MARKERS = (
     "query timeout",
 )
 
+# Rate limiting is transient and only needs a pause. Checked first because
+# "rate limit exceeded" also contains the "limit exceeded" range marker, and
+# a narrowed window never grows back.
+_RATE_LIMIT_MARKERS = (
+    "rate limit",
+    "rate-limit",
+    "too many requests",
+)
+
 
 class RpcRangeError(Exception):
     """The node refused the block range or result set; narrow and retry."""
@@ -36,6 +45,8 @@ class RpcRangeError(Exception):
 
 def is_range_error(message: str) -> bool:
     text = message.lower()
+    if any(marker in text for marker in _RATE_LIMIT_MARKERS):
+        return False
     return any(marker in text for marker in _RANGE_MARKERS)
 
 

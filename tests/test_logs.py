@@ -133,3 +133,25 @@ def test_is_range_error_recognises_provider_messages():
 def test_is_range_error_ignores_unrelated_messages():
     assert not is_range_error("connection reset by peer")
     assert not is_range_error("insufficient funds for gas")
+
+
+def test_is_range_error_treats_rate_limits_as_transient():
+    # Real bodies seen from public nodes; the first one contains the
+    # "limit exceeded" range marker.
+    assert not is_range_error("rate limit exceeded")
+    assert not is_range_error("Your request has been rate-limited due to unusually high traffic")
+    assert not is_range_error("Too Many Requests, Please apply an OnFinality API key")
+
+
+def test_fetch_logs_does_not_narrow_on_rate_limit():
+    attempts = []
+
+    def node(start, end):
+        attempts.append((start, end))
+        if len(attempts) == 1:
+            raise Exception("rate limit exceeded")
+        return [{"from": start, "to": end}]
+
+    logs = fetch_logs(node, 0, 999, block_range=1000, sleep=lambda s: None)
+    assert logs == [{"from": 0, "to": 999}]
+    assert attempts == [(0, 999), (0, 999)]
