@@ -4,6 +4,7 @@ and transient errors are retried with backoff."""
 
 from __future__ import annotations
 
+import logging
 import time
 
 from eth_utils import to_checksum_address
@@ -40,6 +41,8 @@ _RATE_LIMIT_MARKERS = (
     "too many requests",
 )
 
+log = logging.getLogger(__name__)
+
 
 class RpcRangeError(Exception):
     """The node refused the block range or result set; narrow and retry."""
@@ -71,6 +74,8 @@ def fetch_logs(fetcher, from_block, to_block, block_range=10000,
                     f"node refused eth_getLogs even for a {span}-block window: {exc}"
                 ) from exc
             span = max(min_range, span // 2)
+            log.info("getLogs %d-%d refused: %s; narrowing to %d blocks",
+                     start, end, exc, span)
             continue
         start = end + 1
     return out
@@ -87,7 +92,10 @@ def _fetch_window(fetcher, start, end, max_retries, base_delay, sleep):
                 raise RpcRangeError(str(exc)) from exc
             if attempt == max_retries - 1:
                 raise
-            sleep(base_delay * (2 ** attempt))
+            delay = base_delay * (2 ** attempt)
+            log.info("getLogs %d-%d failed: %s; retrying in %.1fs",
+                     start, end, exc, delay)
+            sleep(delay)
     return []
 
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import logging
 import os
 from pathlib import Path
 
@@ -41,6 +42,8 @@ def build_parser() -> argparse.ArgumentParser:
     scan_p.add_argument("--db", help="cache database path")
     scan_p.add_argument("--explorer-key",
                         help="block explorer API key for source verification")
+    scan_p.add_argument("-v", "--verbose", action="store_true",
+                        help="log getLogs window narrowing and retries to stderr")
     return parser
 
 
@@ -55,6 +58,9 @@ def main(argv=None) -> int:
 def _run_scan(args) -> int:
     console = Console()
     err = Console(stderr=True)
+    if args.verbose:
+        logging.basicConfig(format="%(message)s")
+        logging.getLogger("evm_approvals").setLevel(logging.INFO)
     if not is_address(args.address):
         err.print(f"[red]not a valid address: {args.address}[/]")
         return 2

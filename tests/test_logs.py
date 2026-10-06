@@ -102,6 +102,19 @@ def test_fetch_logs_names_the_window_when_it_cannot_narrow_further():
         fetch_logs(node, 0, 5000, block_range=1000, sleep=lambda s: None)
 
 
+def test_fetch_logs_logs_each_narrowing(caplog):
+    node = _RangeLimitedNode(max_span=1000)
+    with caplog.at_level("INFO", logger="evm_approvals.logs"):
+        fetch_logs(node, 0, 5000, block_range=4000, sleep=lambda s: None)
+    narrowed = [r.getMessage() for r in caplog.records]
+    assert narrowed == [
+        "getLogs 0-3999 refused: block range is too wide, please narrow it; "
+        "narrowing to 2000 blocks",
+        "getLogs 0-1999 refused: block range is too wide, please narrow it; "
+        "narrowing to 1000 blocks",
+    ]
+
+
 class _FlakyNode:
     def __init__(self, fail_times):
         self.fail_times = fail_times
