@@ -38,6 +38,12 @@ def test_format_amount():
     assert format_amount(None, 18) == "?"
 
 
+def test_format_amount_never_shows_dust_as_zero():
+    # 6 wei of WETH left to a spender after a partial spend, seen on mainnet.
+    assert format_amount(6, 18) == "<0.0001"
+    assert format_amount(0, 18) == "0"
+
+
 def test_sort_items_orders_by_severity_then_recency():
     items = [_item("low"), _item("high"), _item("medium")]
     ordered = [it["severity"] for it in sort_items(items)]

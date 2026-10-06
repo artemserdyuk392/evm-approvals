@@ -95,7 +95,12 @@ def format_amount(value, decimals) -> str:
     if not decimals:
         return str(value)
     whole = value / (10 ** decimals)
-    return f"{whole:,.4f}".rstrip("0").rstrip(".")
+    text = f"{whole:,.4f}".rstrip("0").rstrip(".")
+    # A dust allowance left after partial spending would otherwise print as
+    # "0" and look like a revoked approval that should not be listed at all.
+    if text == "0" and value > 0:
+        return "<0.0001"
+    return text
 
 
 def _allowance_cell(it) -> str:
