@@ -65,9 +65,11 @@ def fetch_logs(fetcher, from_block, to_block, block_range=10000,
         try:
             out.extend(_fetch_window(fetcher, start, end, max_retries,
                                      base_delay, sleep))
-        except RpcRangeError:
+        except RpcRangeError as exc:
             if span <= min_range:
-                raise
+                raise RpcRangeError(
+                    f"node refused eth_getLogs even for a {span}-block window: {exc}"
+                ) from exc
             span = max(min_range, span // 2)
             continue
         start = end + 1

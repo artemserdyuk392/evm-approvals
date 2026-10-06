@@ -2,6 +2,7 @@ import pytest
 
 from evm_approvals.abi import APPROVAL_FOR_ALL_TOPIC, APPROVAL_TOPIC, address_to_topic
 from evm_approvals.logs import (
+    RpcRangeError,
     fetch_logs,
     is_range_error,
     parse_approval_for_all,
@@ -90,6 +91,15 @@ def test_fetch_logs_narrows_window_on_range_error():
     # ... and the windows tile the range with no gaps or overlaps.
     for (_, prev_end), (next_start, _) in zip(windows, windows[1:]):
         assert next_start == prev_end + 1
+
+
+def test_fetch_logs_names_the_window_when_it_cannot_narrow_further():
+    # bsc-dataseed answers "limit exceeded" to any eth_getLogs, even one block.
+    def node(start, end):
+        raise Exception("limit exceeded")
+
+    with pytest.raises(RpcRangeError, match="even for a 1-block window: limit exceeded"):
+        fetch_logs(node, 0, 5000, block_range=1000, sleep=lambda s: None)
 
 
 class _FlakyNode:
