@@ -27,6 +27,8 @@ _RANGE_MARKERS = (
     "logs matched by query exceeds",
     "please limit",
     "query timeout",
+    "ranges over",
+    "range must not exceed",
 )
 
 # Rate limiting is transient and only needs a pause. Checked first because

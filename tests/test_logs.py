@@ -130,6 +130,21 @@ def test_is_range_error_recognises_provider_messages():
     assert all(is_range_error(m) for m in messages)
 
 
+@pytest.mark.parametrize("message", [
+    # Verbatim answers from public nodes to a too-wide eth_getLogs window.
+    "eth_getLogs is limited to a 500 range",
+    "query spans 100000 blocks (511978060 to 512078059), but only 30000 are allowed "
+    "for this request; narrow the block range, or add an address filter",
+    "ranges over 10000 blocks are not supported on free plan",
+    "eth_getLogs is limited to 0 - 50 blocks range",
+    "You can make eth_getLogs requests with up to a 10 block range.",
+    "Block range too large: maximum allowed is 50 blocks on your current plan.",
+    "log query range must not exceed 25 blocks",
+])
+def test_is_range_error_recognises_live_node_messages(message):
+    assert is_range_error(message)
+
+
 def test_is_range_error_ignores_unrelated_messages():
     assert not is_range_error("connection reset by peer")
     assert not is_range_error("insufficient funds for gas")
